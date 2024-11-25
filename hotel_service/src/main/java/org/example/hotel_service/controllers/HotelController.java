@@ -51,15 +51,15 @@ public class HotelController {
             throw new ResourceNotFoundException("No hotel found with the provided ID.");
         }
 
-        // Récupérer les offres et enrichir la réponse
+
         List<Map<String, Object>> offres = offreRepository.findAll().stream()
-                .filter(offre -> offre.getHotel().getId().equals(hotelId)) // Filtrer par hôtel
+                .filter(offre -> offre.getHotel().getId().equals(hotelId))
                 .filter(offre -> offre.getAgence().getLogin().equalsIgnoreCase(agencyUsername)) // Filtrer par agence
                 .filter(offre -> !offre.getAvailabilityStart().isAfter(endDate) &&
                         !offre.getAvailabilityEnd().isBefore(startDate)) // Vérifier les dates
-                .filter(offre -> offre.getNumberOfBeds() >= numberOfGuests) // Vérifier les lits
+                .filter(offre -> offre.getNumberOfBeds() >= numberOfGuests)
                 .map(offre -> {
-                    // Récupérer les détails enrichis
+
                     Hotel hotel = offre.getHotel();
                     Address address = hotel.getAdresse();
 
@@ -121,18 +121,18 @@ public class HotelController {
         Offre offre = offreRepository.findById(offreId)
                 .orElseThrow(() -> new ResourceNotFoundException("Offer with ID " + offreId + " not found."));
 
-        // Vérifier que l'offre appartient bien à l'hôtel spécifié
+
         if (!offre.getHotel().getId().equals(hotelId)) {
             throw new IllegalArgumentException("Offer does not belong to the specified hotel.");
         }
 
-        // Vérifier si l'offre est déjà réservée
+
         boolean isAlreadyReserved = reservationRepository.existsByOffreId(offreId);
         if (isAlreadyReserved) {
             throw new ReservationException("Offer with ID " + offreId + " is already reserved.");
         }
 
-        // Créer une nouvelle réservation
+
         Reservation reservation = new Reservation();
         reservation.setOffre(offre);
         reservation.setNomClient(clientName);
@@ -141,18 +141,18 @@ public class HotelController {
         reservation.setDateFin(offre.getAvailabilityEnd());
         reservation.setStatus("Confirmed");
 
-        // Sauvegarder la réservation dans la base de données
+
         Reservation savedReservation = reservationRepository.save(reservation);
 
-        // Calcul du prix total
+
         long days = savedReservation.getDateFin().toEpochDay() - savedReservation.getDateDebut().toEpochDay();
         double totalPrice = offre.getPrixAgence() * days;
 
-        // Récupérer les informations de l'hôtel et de l'adresse
+
         Hotel hotel = offre.getHotel();
         Address address = hotel.getAdresse();
 
-        // Construire une réponse enrichie
+
         Map<String, Object> response = new HashMap<>();
         response.put("reservationId", savedReservation.getId());
         response.put("status", "Confirmed");

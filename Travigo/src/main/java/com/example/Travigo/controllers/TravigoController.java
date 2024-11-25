@@ -43,14 +43,14 @@ public class TravigoController {
             }
         }
 
-        // Extraction et validation de l'offre
+
         @SuppressWarnings("unchecked")
         Map<String, Object> offer = (Map<String, Object>) reservationRequest.get("offer");
         if (offer == null || !offer.containsKey("agencyId") || !offer.containsKey("hotelId") || !offer.containsKey("id")) {
             throw new IllegalArgumentException("Invalid offer data: Missing required fields (agencyId, hotelId, id).");
         }
 
-        // Conversion et validation des dates
+
         LocalDate startDate;
         LocalDate endDate;
         try {
@@ -60,7 +60,6 @@ public class TravigoController {
             throw new IllegalArgumentException("Invalid date format for startDate or endDate. Expected format: YYYY-MM-DD");
         }
 
-        // Appel du service pour effectuer la réservation
         return comparatorService.reserveOffer(
                 offer,
                 reservationRequest.get("clientName").toString(),

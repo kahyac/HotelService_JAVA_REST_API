@@ -34,7 +34,7 @@ public class ReservationService {
     private ReservationRepository reservationRepository;
 
     public void saveReservationLocally(
-            Long reservationId, // ID récupéré de l'hôtel
+            Long reservationId,
             Long agenceId,
             Long clientId,
             Long carteBancaireId,
@@ -42,37 +42,36 @@ public class ReservationService {
             Double prixTotal,
             String statut) {
 
-        // Créez une nouvelle réservation
+
         Reservation reservation = new Reservation();
 
-        // Définir l'ID de réservation venant de l'hôtel
+
         reservation.setId(reservationId);
 
-        // Définissez les relations
+
         Agence agence = new Agence();
         agence.setId(agenceId);
-        reservation.setAgence(agence); // Utilisez la relation d'entité
+        reservation.setAgence(agence);
 
         Client client = new Client();
         client.setId(clientId);
-        reservation.setClient(client); // Utilisez la relation d'entité
+        reservation.setClient(client);
 
         if (carteBancaireId != null) {
             CarteBancaire carteBancaire = new CarteBancaire();
             carteBancaire.setId(carteBancaireId);
-            reservation.setCarteBancaire(carteBancaire); // Utilisez la relation d'entité
+            reservation.setCarteBancaire(carteBancaire);
         }
 
         Offre offre = new Offre();
         offre.setId(offreId);
-        reservation.setOffre(offre); // Utilisez la relation d'entité
+        reservation.setOffre(offre);
 
-        // Définissez les champs simples
         reservation.setDateReservation(LocalDateTime.now());
         reservation.setPrixTotal(prixTotal);
         reservation.setStatut(statut);
 
-        // Sauvegardez la réservation
+
         reservationRepository.save(reservation);
     }
 }

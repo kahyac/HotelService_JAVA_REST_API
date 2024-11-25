@@ -123,25 +123,24 @@ public class AgenceController {
             @RequestParam LocalDate endDate,
             @RequestParam int numberOfGuests
     ) {
-        // Étape 1 : Récupérer les offres depuis les services Hôtel
+
         List<Map<String, Object>> offers = hotelServiceClient.getDisponibilitesByCity(
                 idAgence, city, startDate, endDate, numberOfGuests
         );
 
-        // Étape 2 : Mettre à jour les prix depuis la base de données de l'agence
+
         for (Map<String, Object> offer : offers) {
             Long offreId = Long.valueOf(offer.get("id").toString());
 
-            // Récupérer le prix actualisé depuis la base de données de l'agence
+
             Double prixApresReduction = offreRepository.findPrixAgenceById(offreId);
             if (prixApresReduction == null) {
                 throw new IllegalStateException("PrixAgence introuvable pour l'offre ID : " + offreId);
             }
 
-            // Mettre à jour le prix dans la réponse
+
             offer.put("prixAgence", prixApresReduction);
 
-            // Ajouter un champ indiquant le taux de réduction (formaté)
             Double reductionRate = getReductionRate(idAgence);
             offer.put("reductionRate", String.format("%.2f%%", (1 - reductionRate) * 100));
         }
@@ -162,7 +161,7 @@ public class AgenceController {
         } else if (idAgence == 3L) { // Expedia
             return 0.80; // Réduction de 20%
         }
-        return 1.00; // Pas de réduction par défaut
+        return 1.00;
     }
 
     /**
@@ -173,7 +172,7 @@ public class AgenceController {
             @PathVariable Long idAgence,
             @RequestBody Map<String, Object> reservationData
     ) {
-        // Vérification des champs requis
+
         String[] requiredFields = {"hotelId", "offreId", "clientEmail", "clientName", "clientSurname", "cardNumber", "expiryDate", "startDate", "endDate"};
         for (String field : requiredFields) {
             if (!reservationData.containsKey(field) || reservationData.get(field) == null || reservationData.get(field).toString().isEmpty()) {
@@ -181,7 +180,6 @@ public class AgenceController {
             }
         }
 
-        // Extraction des données de la requête
         Long hotelId = Long.valueOf(reservationData.get("hotelId").toString());
         Long offreId = Long.valueOf(reservationData.get("offreId").toString());
         String clientEmail = reservationData.get("clientEmail").toString();
@@ -190,29 +188,27 @@ public class AgenceController {
         String cardNumber = reservationData.get("cardNumber").toString();
         String expiryDate = reservationData.get("expiryDate").toString();
 
-        // Récupérer l'offre pour calculer le prix total
         Offre offre = offreRepository.findById(offreId)
                 .orElseThrow(() -> new IllegalArgumentException("No offer found with ID " + offreId));
         Double prixTotal = offre.getPrixAgence();
 
-        // Récupération ou création du client
+
         Long clientId = clientService.findOrCreateClient(clientEmail, Map.of(
                 "clientName", clientName,
                 "clientSurname", clientSurname
         ));
 
-        // Ajouter ou mettre à jour la carte bancaire
+
         Long carteBancaireId = clientService.addOrUpdateCard(clientId, cardNumber, expiryDate);
 
-        // Appeler le service REST de l'Hôtel pour effectuer la réservation
         Map<String, Object> reservationResponse = hotelServiceClient.effectuerReservation(hotelId, idAgence, reservationData);
 
-        // Récupérer l'ID de réservation généré par l'hôtel
+
         Long reservationId = Long.valueOf(reservationResponse.get("reservationId").toString());
 
-        // Sauvegarder localement la réservation dans la base de données de l'agence
+
         reservationService.saveReservationLocally(
-                reservationId, // Utiliser l'ID de l'hôtel
+                reservationId,
                 idAgence,
                 clientId,
                 carteBancaireId,
@@ -221,7 +217,7 @@ public class AgenceController {
                 reservationResponse.get("status").toString()
         );
 
-        // Retourner la réponse du service de l'hôtel
+
         return ResponseEntity.ok(reservationResponse);
     }
 
