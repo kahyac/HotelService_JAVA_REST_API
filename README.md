@@ -1,2 +1,1 @@
-# TP_REST
-TP_REST
+#hotelservice-java-rest-api
